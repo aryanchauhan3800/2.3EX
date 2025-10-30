@@ -1,0 +1,102 @@
+// File: WebAppServlets.java
+// Experiment 3.1 – Servlets and JSP Integration Example
+// Parts (a), (b), (c) combined in one file
+
+package com.example;
+
+import java.io.*;
+import java.sql.*;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
+
+public class WebAppServlets extends HttpServlet {
+
+    // -------------------- PART (a): User Login --------------------
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+
+        String path = request.getServletPath();
+
+        if (path.equals("/login")) {
+            String username = request.getParameter("username");
+            String password = request.getParameter("password");
+
+            if ("admin".equals(username) && "1234".equals(password)) {
+                out.println("<h2>Welcome, " + username + "!</h2>");
+            } else {
+                out.println("<h3>Invalid credentials. Try again!</h3>");
+            }
+        }
+
+        // -------------------- PART (c): Attendance Submission --------------------
+        else if (path.equals("/attendance")) {
+            String name = request.getParameter("student_name");
+            String status = request.getParameter("status");
+
+            try {
+                Class.forName("com.mysql.cj.jdbc.Driver");
+                Connection con = DriverManager.getConnection(
+                        "jdbc:mysql://localhost:3306/attendance_db", "root", "password");
+
+                PreparedStatement ps = con.prepareStatement(
+                        "INSERT INTO attendance (student_name, status) VALUES (?, ?)");
+                ps.setString(1, name);
+                ps.setString(2, status);
+                ps.executeUpdate();
+
+                out.println("<h2>Attendance submitted successfully for " + name + " (" + status + ")</h2>");
+
+                con.close();
+            } catch (Exception e) {
+                out.println("<h3>Error: " + e.getMessage() + "</h3>");
+            }
+        }
+    }
+
+    // -------------------- PART (b): Display Employees --------------------
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+
+        String path = request.getServletPath();
+
+        if (path.equals("/employees")) {
+            String searchId = request.getParameter("id");
+
+            try {
+                Class.forName("com.mysql.cj.jdbc.Driver");
+                Connection con = DriverManager.getConnection(
+                        "jdbc:mysql://localhost:3306/company", "root", "password");
+
+                Statement st = con.createStatement();
+                String query;
+
+                if (searchId != null && !searchId.isEmpty()) {
+                    query = "SELECT * FROM employees WHERE id=" + searchId;
+                } else {
+                    query = "SELECT * FROM employees";
+                }
+
+                ResultSet rs = st.executeQuery(query);
+
+                out.println("<h2>Employee Records</h2>");
+                out.println("<table border='1'><tr><th>ID</th><th>Name</th><th>Designation</th><th>Salary</th></tr>");
+                while (rs.next()) {
+                    out.println("<tr><td>" + rs.getInt("id") + "</td>");
+                    out.println("<td>" + rs.getString("name") + "</td>");
+                    out.println("<td>" + rs.getString("designation") + "</td>");
+                    out.println("<td>" + rs.getDouble("salary") + "</td></tr>");
+                }
+                out.println("</table>");
+                con.close();
+            } catch (Exception e) {
+                out.println("<h3>Error: " + e.getMessage() + "</h3>");
+            }
+        }
+    }
+}
