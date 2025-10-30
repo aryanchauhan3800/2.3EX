@@ -1,0 +1,44 @@
+// StudentService.java
+package com.example.service;
+
+public interface StudentService {
+    void displayStudentInfo();
+}
+// StudentServiceImpl.java
+package com.example.service;
+
+import org.springframework.stereotype.Component;
+
+@Component
+public class StudentServiceImpl implements StudentService {
+    @Override
+    public void displayStudentInfo() {
+        System.out.println("Student: Aryan Chauhan | Course: Spring Framework");
+    }
+}
+// AppConfig.java
+package com.example.config;
+
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+@ComponentScan(basePackages = "com.example.service")
+public class AppConfig { }
+// MainApp.java
+package com.example;
+
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import com.example.config.AppConfig;
+import com.example.service.StudentService;
+
+public class MainApp {
+    public static void main(String[] args) {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+
+        StudentService studentService = context.getBean(StudentService.class);
+        studentService.displayStudentInfo();
+
+        context.close();
+    }
+}
