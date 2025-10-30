@@ -1,0 +1,110 @@
+package com.example.entity;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "students")
+public class Student {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+
+    private String name;
+    private String course;
+    private double fees;
+
+    // Constructors, Getters, Setters
+}
+<!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD//EN"
+"http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+    <session-factory>
+        <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/studentdb</property>
+        <property name="hibernate.connection.username">root</property>
+        <property name="hibernate.connection.password">password</property>
+        <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
+        <property name="hibernate.hbm2ddl.auto">update</property>
+
+        <mapping class="com.example.entity.Student"/>
+    </session-factory>
+</hibernate-configuration>
+package com.example.config;
+
+import org.springframework.context.annotation.*;
+import org.springframework.orm.hibernate5.*;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+import javax.sql.DataSource;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import com.example.entity.Student;
+
+@Configuration
+@ComponentScan(basePackages = "com.example")
+@EnableTransactionManagement
+public class AppConfig {
+
+    @Bean
+    public DataSource dataSource() {
+        DriverManagerDataSource ds = new DriverManagerDataSource();
+        ds.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        ds.setUrl("jdbc:mysql://localhost:3306/studentdb");
+        ds.setUsername("root");
+        ds.setPassword("password");
+        return ds;
+    }
+
+    @Bean
+    public LocalSessionFactoryBean sessionFactory() {
+        LocalSessionFactoryBean factory = new LocalSessionFactoryBean();
+        factory.setDataSource(dataSource());
+        factory.setPackagesToScan("com.example.entity");
+        return factory;
+    }
+
+    @Bean
+    public HibernateTransactionManager transactionManager(SessionFactory sf) {
+        return new HibernateTransactionManager(sf);
+    }
+}
+package com.example.dao;
+
+import java.util.List;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+import com.example.entity.Student;
+
+@Repository
+public class StudentDAOImpl implements StudentDAO {
+
+    @Autowired
+    private SessionFactory sessionFactory;
+
+    @Override
+    public void saveStudent(Student student) {
+        Session session = sessionFactory.getCurrentSession();
+        session.persist(student);
+    }
+
+    @Override
+    public List<Student> getAllStudents() {
+        return sessionFactory.getCurrentSession().createQuery("from Student", Student.class).list();
+    }
+
+    @Override
+    public void deleteStudent(int id) {
+        Session session = sessionFactory.getCurrentSession();
+        Student s = session.get(Student.class, id);
+        if (s != null) session.remove(s);
+    }
+
+    @Override
+    public void updateFees(int id, double newFees) {
+        Session session = sessionFactory.getCurrentSession();
+        Student s = session.get(Student.class, id);
+        if (s != null) s.setFees(newFees);
+    }
+}
