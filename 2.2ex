@@ -1,0 +1,26 @@
+import java.util.*;
+
+public class SumUsingAutoboxing {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Enter integers separated by spaces: ");
+        String input = sc.nextLine();
+
+        String[] parts = input.split(" ");
+        List<Integer> numbers = new ArrayList<>();
+
+        // Parsing strings into integers (Autoboxing)
+        for (String s : parts) {
+            Integer num = Integer.parseInt(s); // String → int → Integer
+            numbers.add(num);
+        }
+
+        int sum = 0;
+        for (Integer num : numbers) {
+            sum += num; // Unboxing: Integer → int
+        }
+
+        System.out.println("Sum of integers: " + sum);
+    }
+}
